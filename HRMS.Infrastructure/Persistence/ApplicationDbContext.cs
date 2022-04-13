@@ -1,0 +1,148 @@
+﻿using HRMS.Application.Common.Interfaces;
+using HRMS.Domain.Common;
+using HRMS.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+
+namespace HRMS.Infrastructure.Persistence
+{
+    public class ApplicationDbContext : IdentityDbContext<User, Role, long, IdentityUserClaim<long>, UserRole, IdentityUserLogin<long>, IdentityRoleClaim<long>, IdentityUserToken<long>>, IApplicationDbContext
+    {
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IDateTime _dateTime;
+        private readonly IDomainEventService _domainEventService;
+
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            ICurrentUserService currentUserService,
+            IDomainEventService domainEventService,
+            IDateTime dateTime) : base(options)
+        {
+            _currentUserService = currentUserService;
+            _domainEventService = domainEventService;
+            _dateTime = dateTime;
+        }
+
+        public DbSet<LeavePolicy> LeavePolicys { get; set; }
+        public DbSet<UserLeavePolicy> UserLeavePolicys { get; set; }
+        public DbSet<LeaveHistory> LeaveHistory { get; set; }
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                        entry.Entity.CreatedBy = _currentUserService.UserId;
+                        entry.Entity.Created = _dateTime.Now;
+                        break;
+
+                    case EntityState.Modified:
+                        entry.Entity.LastModifiedBy = _currentUserService.UserId;
+                        entry.Entity.LastModified = _dateTime.Now;
+                        break;
+                }
+            }
+
+            var events = ChangeTracker.Entries<IHasDomainEvent>()
+                    .Select(x => x.Entity.DomainEvents)
+                    .SelectMany(x => x)
+                    .Where(domainEvent => !domainEvent.IsPublished)
+                    .ToArray();
+
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            await DispatchEvents(events);
+
+            return result;
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<User>(u =>
+            {
+                u.ToTable(name: "Users");
+                u.Property(x => x.UserName).IsRequired().HasMaxLength(20);
+                u.Property(x => x.NormalizedUserName).HasMaxLength(20);
+                u.Property(x => x.PhoneNumber).HasMaxLength(20);
+                u.Property(x => x.Email).IsRequired().HasMaxLength(50);
+                u.Property(x => x.NormalizedEmail).HasMaxLength(50);
+            });
+
+            builder.Entity<Role>(r =>
+            {
+                r.ToTable(name: "Roles");
+                r.Property(x => x.Name).HasMaxLength(20);
+                r.Property(x => x.NormalizedName).HasMaxLength(20);
+            });
+
+
+            builder.Entity<UserRole>(userRole =>
+            {
+                userRole.ToTable(name: "UserRoles");
+                userRole.HasKey(ur => new { ur.UserId, ur.RoleId });
+
+                userRole.HasOne(ur => ur.Role)
+                    .WithMany(r => r.UserRoles)
+                    .HasForeignKey(ur => ur.RoleId)
+                    .IsRequired();
+                userRole.HasOne(ur => ur.User)
+                    .WithMany(u => u.UserRoles)
+                    .HasForeignKey(ur => ur.UserId)
+                    .IsRequired();
+            });
+
+
+            builder.Entity<IdentityUserClaim<long>>(entity =>
+            {
+                entity.ToTable("UserClaims");
+            });
+
+            builder.Entity<IdentityUserLogin<long>>(entity =>
+            {
+                entity.ToTable("UserLogins");
+                entity.HasIndex(x => new { x.ProviderKey, x.LoginProvider });
+            });
+
+            builder.Entity<IdentityRoleClaim<long>>(entity =>
+            {
+                entity.ToTable("RoleClaims");
+
+            });
+
+            builder.Entity<IdentityUserToken<long>>(entity =>
+            {
+                entity.ToTable("UserTokens");
+            });
+
+            builder.Entity<LeavePolicy>(lp =>
+            {
+                lp.Property(x => x.Name).HasMaxLength(20);
+            });
+            builder.Entity<UserLeavePolicy>(ulp =>
+            {
+                ulp.HasKey(ur => new { ur.UserId, ur.LeavePolicyId });
+                ulp.HasOne(ur => ur.LeavePolicy)
+                    .WithMany(r => r.UserLeavePolicies)
+                    .HasForeignKey(ur => ur.LeavePolicyId)
+                    .IsRequired();
+                ulp.HasOne(ur => ur.User)
+                    .WithMany(u => u.UserLeavePolicies)
+                    .HasForeignKey(ur => ur.UserId)
+                    .IsRequired();
+            });
+        }
+
+        private async Task DispatchEvents(DomainEvent[] events)
+        {
+            foreach (var @event in events)
+            {
+                @event.IsPublished = true;
+                await _domainEventService.Publish(@event);
+            }
+        }
+    }
+}
