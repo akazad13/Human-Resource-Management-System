@@ -27,6 +27,7 @@ namespace HRMS.Infrastructure.Persistence
         public DbSet<LeavePolicy> LeavePolicys { get; set; }
         public DbSet<UserLeavePolicy> UserLeavePolicys { get; set; }
         public DbSet<LeaveHistory> LeaveHistory { get; set; }
+        public DbSet<LeaveStatus> LeaveStatus { get; set; }
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
@@ -70,6 +71,11 @@ namespace HRMS.Infrastructure.Persistence
                 u.Property(x => x.PhoneNumber).HasMaxLength(20);
                 u.Property(x => x.Email).IsRequired().HasMaxLength(50);
                 u.Property(x => x.NormalizedEmail).HasMaxLength(50);
+
+                u.HasOne(x => x.Manager)
+                 .WithMany()
+                 .IsRequired(false)
+                 .OnDelete(DeleteBehavior.Restrict);
             });
 
             builder.Entity<Role>(r =>

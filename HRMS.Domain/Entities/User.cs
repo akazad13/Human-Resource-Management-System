@@ -20,5 +20,7 @@ namespace HRMS.Domain.Entities
         public ICollection<UserRole>? UserRoles { get; set; }
         public ICollection<UserLeavePolicy> UserLeavePolicies { get; set; }
         public ICollection<LeaveHistory> LeaveHistorys { get; set; }
+        public long? ManagerId { get; set; }
+        public User Manager { get; set; }
     }
 }

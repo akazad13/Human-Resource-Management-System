@@ -16,5 +16,6 @@ namespace HRMS.Application.DTOs.Account
 
         [Required]
         public string Password { get; set; }
+        public long? ManagerId { get; set; }
     }
 }

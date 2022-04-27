@@ -10,6 +10,7 @@ namespace HRMS.Application.Commands
         public string LastName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
+        public long? ManagerId { get; set; }
     }
 
     public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, SignupResponse>
@@ -27,7 +28,7 @@ namespace HRMS.Application.Commands
                 throw new Exception("There is already an user registered with this email!");
             }
 
-            var result = await _identityService.CreateUserAsync(request.FirstName, request.LastName, request.Email, request.Password);
+            var result = await _identityService.CreateUserAsync(request.FirstName, request.LastName, request.Email, request.Password, request.ManagerId);
 
             if (result.Succeeded)
             {

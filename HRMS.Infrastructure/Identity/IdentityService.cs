@@ -59,7 +59,7 @@ namespace CleanArchitecture.Infrastructure.Identity
 
             return user.UserName;
         }
-        public async Task<Result> CreateUserAsync(string firstname, string Lastname, string email, string password)
+        public async Task<Result> CreateUserAsync(string firstname, string Lastname, string email, string password, long? ManagerId)
         {
             var user = new User
             {
@@ -67,6 +67,7 @@ namespace CleanArchitecture.Infrastructure.Identity
                 LastName = Lastname,
                 UserName = email,
                 Email = email,
+                ManagerId = ManagerId
             };
 
             var result = await _userManager.CreateAsync(user, password);

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRMS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220405090240_AddedLeavePolicytables")]
-    partial class AddedLeavePolicytables
+    [Migration("20220420085758_InitialChanges")]
+    partial class InitialChanges
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,6 +23,45 @@ namespace HRMS.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+
+            modelBuilder.Entity("HRMS.Domain.Entities.LeaveHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<DateTimeOffset>("ApplicationDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LeaveStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoOfLeaves")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeaveStatusId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("LeaveHistory");
+                });
 
             modelBuilder.Entity("HRMS.Domain.Entities.LeavePolicy", b =>
                 {
@@ -35,8 +74,7 @@ namespace HRMS.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("TotalNoOfLeave")
                         .HasColumnType("int");
@@ -44,6 +82,23 @@ namespace HRMS.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("LeavePolicys");
+                });
+
+            modelBuilder.Entity("HRMS.Domain.Entities.LeaveStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("StatusDescr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LeaveStatus");
                 });
 
             modelBuilder.Entity("HRMS.Domain.Entities.Role", b =>
@@ -60,13 +115,11 @@ namespace HRMS.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
 
@@ -96,8 +149,7 @@ namespace HRMS.Infrastructure.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
@@ -105,14 +157,12 @@ namespace HRMS.Infrastructure.Migrations
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -120,23 +170,23 @@ namespace HRMS.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<long?>("ManagerId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
@@ -150,10 +200,11 @@ namespace HRMS.Infrastructure.Migrations
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ManagerId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -286,6 +337,35 @@ namespace HRMS.Infrastructure.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("HRMS.Domain.Entities.LeaveHistory", b =>
+                {
+                    b.HasOne("HRMS.Domain.Entities.LeaveStatus", "LeaveStatus")
+                        .WithMany()
+                        .HasForeignKey("LeaveStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS.Domain.Entities.User", "User")
+                        .WithMany("LeaveHistorys")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LeaveStatus");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HRMS.Domain.Entities.User", b =>
+                {
+                    b.HasOne("HRMS.Domain.Entities.User", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Manager");
+                });
+
             modelBuilder.Entity("HRMS.Domain.Entities.UserLeavePolicy", b =>
                 {
                     b.HasOne("HRMS.Domain.Entities.LeavePolicy", "LeavePolicy")
@@ -372,6 +452,8 @@ namespace HRMS.Infrastructure.Migrations
 
             modelBuilder.Entity("HRMS.Domain.Entities.User", b =>
                 {
+                    b.Navigation("LeaveHistorys");
+
                     b.Navigation("UserLeavePolicies");
 
                     b.Navigation("UserRoles");
