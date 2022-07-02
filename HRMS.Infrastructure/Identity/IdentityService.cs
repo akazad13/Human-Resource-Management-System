@@ -67,7 +67,6 @@ namespace CleanArchitecture.Infrastructure.Identity
                 LastName = Lastname,
                 UserName = email,
                 Email = email,
-                ManagerId = ManagerId
             };
 
             var result = await _userManager.CreateAsync(user, password);

@@ -4,6 +4,7 @@ using HRMS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRMS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220506090600_UpdatedUserTable")]
+    partial class UpdatedUserTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,43 +23,6 @@ namespace HRMS.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("HRMS.Domain.Entities.Employee", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<string>("Designation")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<long?>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Employees");
-                });
-
-            modelBuilder.Entity("HRMS.Domain.Entities.EmployeeLeavePolicy", b =>
-                {
-                    b.Property<long>("EmployeeId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("LeavePolicyId")
-                        .HasColumnType("int");
-
-                    b.HasKey("EmployeeId", "LeavePolicyId");
-
-                    b.HasIndex("LeavePolicyId");
-
-                    b.ToTable("EmployeeLeavePolicys");
-                });
 
             modelBuilder.Entity("HRMS.Domain.Entities.LeaveHistory", b =>
                 {
@@ -71,10 +36,8 @@ namespace HRMS.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Comment")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("EmployeeId")
-                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -88,11 +51,14 @@ namespace HRMS.Infrastructure.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("EmployeeId");
-
                     b.HasIndex("LeaveStatusId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("LeaveHistory");
                 });
@@ -127,6 +93,7 @@ namespace HRMS.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("StatusDescr")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -179,6 +146,10 @@ namespace HRMS.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Designation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -202,6 +173,9 @@ namespace HRMS.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("ManagerId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(50)
@@ -234,6 +208,8 @@ namespace HRMS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ManagerId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -243,6 +219,21 @@ namespace HRMS.Infrastructure.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("HRMS.Domain.Entities.UserLeavePolicy", b =>
+                {
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("LeavePolicyId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "LeavePolicyId");
+
+                    b.HasIndex("LeavePolicyId");
+
+                    b.ToTable("UserLeavePolicys");
                 });
 
             modelBuilder.Entity("HRMS.Domain.Entities.UserRole", b =>
@@ -258,30 +249,6 @@ namespace HRMS.Infrastructure.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserRoles", (string)null);
-                });
-
-            modelBuilder.Entity("HRMS.Domain.Entities.WorkHistory", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<string>("Designation")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("EmployeeId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.ToTable("WorkHistories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<long>", b =>
@@ -374,51 +341,52 @@ namespace HRMS.Infrastructure.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("HRMS.Domain.Entities.Employee", b =>
-                {
-                    b.HasOne("HRMS.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("HRMS.Domain.Entities.EmployeeLeavePolicy", b =>
-                {
-                    b.HasOne("HRMS.Domain.Entities.Employee", "Employee")
-                        .WithMany("EmployeeLeavePolicies")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HRMS.Domain.Entities.LeavePolicy", "LeavePolicy")
-                        .WithMany("EmployeeLeavePolicies")
-                        .HasForeignKey("LeavePolicyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-
-                    b.Navigation("LeavePolicy");
-                });
-
             modelBuilder.Entity("HRMS.Domain.Entities.LeaveHistory", b =>
                 {
-                    b.HasOne("HRMS.Domain.Entities.Employee", "Employee")
-                        .WithMany("LeaveHistories")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("HRMS.Domain.Entities.LeaveStatus", "LeaveStatus")
                         .WithMany()
                         .HasForeignKey("LeaveStatusId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Employee");
+                    b.HasOne("HRMS.Domain.Entities.User", "User")
+                        .WithMany("LeaveHistorys")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("LeaveStatus");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HRMS.Domain.Entities.User", b =>
+                {
+                    b.HasOne("HRMS.Domain.Entities.User", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Manager");
+                });
+
+            modelBuilder.Entity("HRMS.Domain.Entities.UserLeavePolicy", b =>
+                {
+                    b.HasOne("HRMS.Domain.Entities.LeavePolicy", "LeavePolicy")
+                        .WithMany("UserLeavePolicies")
+                        .HasForeignKey("LeavePolicyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRMS.Domain.Entities.User", "User")
+                        .WithMany("UserLeavePolicies")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LeavePolicy");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HRMS.Domain.Entities.UserRole", b =>
@@ -438,17 +406,6 @@ namespace HRMS.Infrastructure.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("HRMS.Domain.Entities.WorkHistory", b =>
-                {
-                    b.HasOne("HRMS.Domain.Entities.Employee", "Employee")
-                        .WithMany("WorkHistories")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<long>", b =>
@@ -487,18 +444,9 @@ namespace HRMS.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("HRMS.Domain.Entities.Employee", b =>
-                {
-                    b.Navigation("EmployeeLeavePolicies");
-
-                    b.Navigation("LeaveHistories");
-
-                    b.Navigation("WorkHistories");
-                });
-
             modelBuilder.Entity("HRMS.Domain.Entities.LeavePolicy", b =>
                 {
-                    b.Navigation("EmployeeLeavePolicies");
+                    b.Navigation("UserLeavePolicies");
                 });
 
             modelBuilder.Entity("HRMS.Domain.Entities.Role", b =>
@@ -508,6 +456,10 @@ namespace HRMS.Infrastructure.Migrations
 
             modelBuilder.Entity("HRMS.Domain.Entities.User", b =>
                 {
+                    b.Navigation("LeaveHistorys");
+
+                    b.Navigation("UserLeavePolicies");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

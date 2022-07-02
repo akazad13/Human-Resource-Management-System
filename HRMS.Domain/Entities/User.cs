@@ -16,11 +16,7 @@ namespace HRMS.Domain.Entities
         ErrorMessage = "Last Name should be minimum 3 characters and a maximum of 50 characters")]
         [DataType(DataType.Text)]
         public string? LastName { get; set; }
-
         public ICollection<UserRole>? UserRoles { get; set; }
-        public ICollection<UserLeavePolicy> UserLeavePolicies { get; set; }
-        public ICollection<LeaveHistory> LeaveHistorys { get; set; }
-        public long? ManagerId { get; set; }
-        public User Manager { get; set; }
+
     }
 }

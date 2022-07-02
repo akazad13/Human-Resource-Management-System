@@ -24,8 +24,10 @@ namespace HRMS.Infrastructure.Persistence
             _dateTime = dateTime;
         }
 
+        public DbSet<Employee> Employees { get; set; }
+        public DbSet<WorkHistory> WorkHistories { get; set; }
         public DbSet<LeavePolicy> LeavePolicys { get; set; }
-        public DbSet<UserLeavePolicy> UserLeavePolicys { get; set; }
+        public DbSet<EmployeeLeavePolicy> EmployeeLeavePolicys { get; set; }
         public DbSet<LeaveHistory> LeaveHistory { get; set; }
         public DbSet<LeaveStatus> LeaveStatus { get; set; }
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
@@ -71,11 +73,11 @@ namespace HRMS.Infrastructure.Persistence
                 u.Property(x => x.PhoneNumber).HasMaxLength(20);
                 u.Property(x => x.Email).IsRequired().HasMaxLength(50);
                 u.Property(x => x.NormalizedEmail).HasMaxLength(50);
+            });
 
-                u.HasOne(x => x.Manager)
-                 .WithMany()
-                 .IsRequired(false)
-                 .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<Employee>(u =>
+            {
+                u.Property(x => x.Designation).HasMaxLength(30);
             });
 
             builder.Entity<Role>(r =>
@@ -128,16 +130,16 @@ namespace HRMS.Infrastructure.Persistence
             {
                 lp.Property(x => x.Name).HasMaxLength(20);
             });
-            builder.Entity<UserLeavePolicy>(ulp =>
+            builder.Entity<EmployeeLeavePolicy>(ulp =>
             {
-                ulp.HasKey(ur => new { ur.UserId, ur.LeavePolicyId });
+                ulp.HasKey(ur => new { ur.EmployeeId, ur.LeavePolicyId });
                 ulp.HasOne(ur => ur.LeavePolicy)
-                    .WithMany(r => r.UserLeavePolicies)
+                    .WithMany(r => r.EmployeeLeavePolicies)
                     .HasForeignKey(ur => ur.LeavePolicyId)
                     .IsRequired();
-                ulp.HasOne(ur => ur.User)
-                    .WithMany(u => u.UserLeavePolicies)
-                    .HasForeignKey(ur => ur.UserId)
+                ulp.HasOne(ur => ur.Employee)
+                    .WithMany(u => u.EmployeeLeavePolicies)
+                    .HasForeignKey(ur => ur.EmployeeId)
                     .IsRequired();
             });
         }
