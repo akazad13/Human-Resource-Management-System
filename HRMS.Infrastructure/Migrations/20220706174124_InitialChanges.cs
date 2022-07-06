@@ -29,7 +29,7 @@ namespace HRMS.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StatusDescr = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    StatusDescr = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -59,7 +59,6 @@ namespace HRMS.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    ManagerId = table.Column<long>(type: "bigint", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
@@ -78,12 +77,6 @@ namespace HRMS.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Users_Users_ManagerId",
-                        column: x => x.ManagerId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -108,30 +101,33 @@ namespace HRMS.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LeaveHistory",
+                name: "Employees",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ApplicationDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    NoOfLeaves = table.Column<int>(type: "int", nullable: false),
-                    LeaveStatusId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<long>(type: "bigint", nullable: false)
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    DateofBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Nationality = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    BloodGroup = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: true),
+                    NID = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
+                    PassportNo = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
+                    TIN = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
+                    TaxCircle = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Taxzone = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    MaritalStatus = table.Column<int>(type: "int", nullable: true),
+                    Gender = table.Column<string>(type: "nvarchar(1)", nullable: true),
+                    Religion = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    PersonalEmail = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    PersonalPhone = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
+                    PersonalMobile = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
+                    IsManger = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LeaveHistory", x => x.Id);
+                    table.PrimaryKey("PK_Employees", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_LeaveHistory_LeaveStatus_LeaveStatusId",
-                        column: x => x.LeaveStatusId,
-                        principalTable: "LeaveStatus",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_LeaveHistory_Users_UserId",
+                        name: "FK_Employees_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -153,30 +149,6 @@ namespace HRMS.Infrastructure.Migrations
                     table.PrimaryKey("PK_UserClaims", x => x.Id);
                     table.ForeignKey(
                         name: "FK_UserClaims_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserLeavePolicys",
-                columns: table => new
-                {
-                    UserId = table.Column<long>(type: "bigint", nullable: false),
-                    LeavePolicyId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserLeavePolicys", x => new { x.UserId, x.LeavePolicyId });
-                    table.ForeignKey(
-                        name: "FK_UserLeavePolicys_LeavePolicys_LeavePolicyId",
-                        column: x => x.LeavePolicyId,
-                        principalTable: "LeavePolicys",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserLeavePolicys_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -247,15 +219,111 @@ namespace HRMS.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "EmployeeLeavePolicys",
+                columns: table => new
+                {
+                    EmployeeId = table.Column<long>(type: "bigint", nullable: false),
+                    LeavePolicyId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmployeeLeavePolicys", x => new { x.EmployeeId, x.LeavePolicyId });
+                    table.ForeignKey(
+                        name: "FK_EmployeeLeavePolicys_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EmployeeLeavePolicys_LeavePolicys_LeavePolicyId",
+                        column: x => x.LeavePolicyId,
+                        principalTable: "LeavePolicys",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LeaveHistory",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ApplicationDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    NoOfLeaves = table.Column<int>(type: "int", nullable: false),
+                    LeaveStatusId = table.Column<int>(type: "int", nullable: false),
+                    EmployeeId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LeaveHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LeaveHistory_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LeaveHistory_LeaveStatus_LeaveStatusId",
+                        column: x => x.LeaveStatusId,
+                        principalTable: "LeaveStatus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkHistories",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmployeeId = table.Column<long>(type: "bigint", nullable: false),
+                    EffectiveDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Designation = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ManagerId = table.Column<long>(type: "bigint", nullable: false),
+                    ChangedType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ModifiedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkHistories_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_WorkHistories_Employees_ManagerId",
+                        column: x => x.ManagerId,
+                        principalTable: "Employees",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmployeeLeavePolicys_LeavePolicyId",
+                table: "EmployeeLeavePolicys",
+                column: "LeavePolicyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_UserId",
+                table: "Employees",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LeaveHistory_EmployeeId",
+                table: "LeaveHistory",
+                column: "EmployeeId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_LeaveHistory_LeaveStatusId",
                 table: "LeaveHistory",
                 column: "LeaveStatusId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LeaveHistory_UserId",
-                table: "LeaveHistory",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -273,11 +341,6 @@ namespace HRMS.Infrastructure.Migrations
                 name: "IX_UserClaims_UserId",
                 table: "UserClaims",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserLeavePolicys_LeavePolicyId",
-                table: "UserLeavePolicys",
-                column: "LeavePolicyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserLogins_ProviderKey_LoginProvider",
@@ -300,20 +363,28 @@ namespace HRMS.Infrastructure.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_ManagerId",
-                table: "Users",
-                column: "ManagerId");
-
-            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "Users",
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkHistories_EmployeeId",
+                table: "WorkHistories",
+                column: "EmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkHistories_ManagerId",
+                table: "WorkHistories",
+                column: "ManagerId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "EmployeeLeavePolicys");
+
             migrationBuilder.DropTable(
                 name: "LeaveHistory");
 
@@ -322,9 +393,6 @@ namespace HRMS.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserClaims");
-
-            migrationBuilder.DropTable(
-                name: "UserLeavePolicys");
 
             migrationBuilder.DropTable(
                 name: "UserLogins");
@@ -336,13 +404,19 @@ namespace HRMS.Infrastructure.Migrations
                 name: "UserTokens");
 
             migrationBuilder.DropTable(
-                name: "LeaveStatus");
+                name: "WorkHistories");
 
             migrationBuilder.DropTable(
                 name: "LeavePolicys");
 
             migrationBuilder.DropTable(
+                name: "LeaveStatus");
+
+            migrationBuilder.DropTable(
                 name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "Employees");
 
             migrationBuilder.DropTable(
                 name: "Users");

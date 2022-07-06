@@ -75,11 +75,6 @@ namespace HRMS.Infrastructure.Persistence
                 u.Property(x => x.NormalizedEmail).HasMaxLength(50);
             });
 
-            builder.Entity<Employee>(u =>
-            {
-                u.Property(x => x.Designation).HasMaxLength(30);
-            });
-
             builder.Entity<Role>(r =>
             {
                 r.ToTable(name: "Roles");
@@ -141,6 +136,19 @@ namespace HRMS.Infrastructure.Persistence
                     .WithMany(u => u.EmployeeLeavePolicies)
                     .HasForeignKey(ur => ur.EmployeeId)
                     .IsRequired();
+            });
+
+            builder.Entity<WorkHistory>(wh =>
+            {
+                wh.HasOne(wh => wh.Employee)
+                    .WithMany(e => e.EmployeeWorkHistories)
+                    .HasForeignKey(wh => wh.EmployeeId)
+                    .IsRequired();
+                wh.HasOne(wh => wh.Manager)
+                   .WithMany(e => e.EmployeeManagerHistories)
+                   .HasForeignKey(wh => wh.ManagerId)
+                   .IsRequired()
+                   .OnDelete(DeleteBehavior.NoAction);
             });
         }
 
